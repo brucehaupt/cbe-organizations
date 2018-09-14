@@ -3,16 +3,22 @@
 
 <head>
 	<meta charset=utf-8 />
-	<title>Full map width template</title>
+	<title>Network of collaborating postsecondary CBE organizations</title>
 	<meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
 
+	<meta name="description" content="A map of postsecondary CBE organizations collaborating and involved in the developmes 	nt and implementation of CBE programs">
+  <meta name="keywords" content="CBE, postsecondary, higher ed, innovation, social network analysis, spatial analysis, maps, mapping, New Maps Plus, University of Kentucky, geography, student, rich rocks">
+  <meta name="author" content="Bruce Haupt">
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.4/dist/leaflet.css" />
+	<link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+
 
 	<style>
 		body {
 			margin: 0;
 			padding: 0;
-			font-family: sans-serif;
+			font-family: Lato, sans-serif;
 			color: #3d3d3d;
 		}
 		h1 {
@@ -49,11 +55,11 @@
 		#about {
 			position: absolute;
 			bottom: 20px;
-			right: 15px;
+			left: 15px;
 			width: 250px;
 			padding: 0 15px;
-			background: rgba(256, 256, 256, 0);
-			border: 1px solid skyblue;
+			background: rgba(256, 256, 256, .4);
+			border: 1px solid;
 			border-radius: 8px;
 			z-index: 800;
 		}
@@ -72,6 +78,8 @@
 
 		#about ul {
 			padding-left: 15px;
+			font-size: .9em;
+			line-height: 1.5em;
 		}
 
 
@@ -86,28 +94,28 @@
 		a:hover {
 			text-decoration: underline;
 		}
+
 	</style>
 </head>
 
 <body>
 
-
-
-
 	<header id="title">
-    <h1>Who's replacing fossil fuels?</h1>
+    <h1>The Network of Networking Postsecondary CBE Organizations</h1>
   </header>
 
   <div id='map'></div>
 
   <section id="about">
-    <h2>Data Source</h2>
-    <p><a href="https://www.eia.gov/">US Energy Information Administration</a></p>
+    <h2>About this map</h2>
+		<p>The focus is on postsecondary competency-based education (CBE) organizations. Higher ed institutions are in goldenrod; all others in sky blue. The radius for each circle is based on the number of individuals in the organizations who are collaborating with others.</p>
+		<p>This is an extension of the Carto social network and spatial analysis <a href="https://brucehaupt.github.io/my-final-project-repo/">mashup</a> that I created.</p>
+
 
     <h2>Map by Bruce Haupt</h2>
     <ul>
       <li>See my projects on GitHub: <a href="https://github.com/brucehaupt" target="_blank">brucehaupt</a></li>
-      <li>Become one of my many adoring fans: <a href="https://twitter.com/brucehaupt" target="_blank">@brucehaupt</a></li>
+      <li>Follow me on twitter: <a href="https://twitter.com/brucehaupt" target="_blank">@brucehaupt</a></li>
       <li>Check out my <a href="https://brucehaupt.github.io/hometown-map/" target="_blank">portfolio map</a></li>
     </ul>
 
@@ -120,17 +128,13 @@
 
 	<script>
 
-// ACCESSING THE DATA WITH JQUERY
-
-	  $.getJSON("data/CBE_organizations.geojson", function(data) {
-	
-// SETTING BASE MAP & STYLING
+// SETUP MAP
 
 		var options = {
-		    center: [37.74, -96.28],
-		    zoom: 4.5,
-		    zoomSnap: .1,
-		    zoomControl: false
+				center: [39.74, -104.28],
+				zoom: 4.5,
+				zoomSnap: .1,
+				zoomControl: false
 		}
 
 		var map = L.map('map', options);
@@ -141,14 +145,107 @@
 			maxZoom: 19
 		});
 
-    tiles.addTo(map);
+		tiles.addTo(map);
+
+
+// ACCESSING THE DATA WITH JQUERY
+
+	  $.getJSON("data/CBE_organizations.geojson", function(data) {
+
+
+// COMMON STYLYING
 
 		var commonStyles = {
-     weight: 1,
-     stroke: 1,
-    }
+			weight: 1,
+			stroke: 1,
+		}
 
 
+// LAYER OF CBE COLLEGES AND UNIVERSITIES W/ TOOLTIPS
+
+		var collegesLayer = L.geoJson(data, {
+
+			pointToLayer: function(feature,latlng) {
+				return L.circleMarker(latlng, commonStyles);
+			},
+
+			filter: function(feature) {
+				if(feature.properties.us_college == 1 && feature.properties.no_people > 0) {
+					return feature;
+			 	}
+			},
+
+			style: function(feature) {
+				return {
+					color: '#F78D3F',
+				 	fillColor: '#FCD271',
+				 	fillOpacity: .4,
+				 	radius: 2 + (feature.properties.no_people * 2)
+					// radius: getRadius(feature.properties.fuel_source.Solar)
+
+			 	}
+			},
+
+			onEachFeature : function(feature, layer) {
+			 layer.on('mouseover', function() {
+				 layer.setStyle({
+					 fillColor: 'red'
+				 });
+			 });
+			 layer.on('mouseout', function() {
+				 layer.setStyle({
+					 fillColor: '#FCD271'
+				 });
+			 });
+			 layer.bindTooltip("<p><b>" + layer.feature.properties.org_name + "<br>Degree granting category: </b>" + layer.feature.properties.preddeg_desc + "<br><b>Control structure: </b>" + layer.feature.properties.control_desc + "<br><b>Number of people in analysis: </b>" + feature.properties.no_people   + "</p>");
+			}
+
+			}).addTo(map);
+
+
+// LAYER OF OTHER NON-HE INSTITUTION CBE ORGANIZATIONS W/ TOOLTIPS
+
+		var otherOrgsLayer = L.geoJson(data, {
+
+			pointToLayer: function(feature,latlng) {
+				return L.circleMarker(latlng, commonStyles);
+			},
+
+			filter: function(feature) {
+				if(feature.properties.us_college == 0 && feature.properties.no_people > 0) {
+					return feature;
+			 	}
+			},
+
+			style: function(feature) {
+				return {
+					color: '#fff',
+				 	fillColor: '#2BBBD8',
+				 	fillOpacity: .4,
+				 	radius: 2 + (feature.properties.no_people * 2)
+			 	}
+			},
+
+			onEachFeature : function(feature, layer) {
+			 layer.on('mouseover', function() {
+				 layer.setStyle({
+					 fillColor: 'red'
+				 });
+			 });
+			 layer.on('mouseout', function() {
+				 layer.setStyle({
+					 fillColor: '#2BBBD8'
+				 });
+			 });
+			 layer.bindTooltip("<p><b>" + layer.feature.properties.org_name + "<br><b>Number of people in analysis: </b>" + feature.properties.no_people + "</p>");
+			}
+
+			}).addTo(map);
+
+
+// END ORIGINAL AJAX FUNCTION CALL
+
+	});
 
 
 	</script>
