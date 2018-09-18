@@ -152,6 +152,15 @@
 
 	  $.getJSON("data/CBE_organizations.geojson", function(data) {
 
+			// data here is the GeoJSON
+			console.log(data)
+
+			// sort the features by comparing each element to the next one
+			data.features.sort(function(a, b) {
+				// return the higher one so it gets drawn first (below the lower one)
+				return b.properties.no_people - a.properties.no_people;
+			});
+
 
 // COMMON STYLYING
 
