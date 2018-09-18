@@ -167,6 +167,7 @@
 		var commonStyles = {
 			weight: 1,
 			stroke: 1,
+			fillOpacity: .5
 		}
 
 
@@ -188,9 +189,7 @@
 				return {
 					color: '#F78D3F',
 				 	fillColor: '#FCD271',
-				 	fillOpacity: .4,
-				 	radius: 2 + (feature.properties.no_people * 2)
-					// radius: getRadius(feature.properties.fuel_source.Solar)
+					radius: getRadius(feature.properties.no_people)
 
 			 	}
 			},
@@ -230,8 +229,7 @@
 				return {
 					color: '#fff',
 				 	fillColor: '#2BBBD8',
-				 	fillOpacity: .4,
-				 	radius: 2 + (feature.properties.no_people * 2)
+					radius: getRadius(feature.properties.no_people)
 			 	}
 			},
 
@@ -255,6 +253,15 @@
 // END ORIGINAL AJAX FUNCTION CALL
 
 	});
+
+// Radius formula
+
+function getRadius (no_people) {
+	var radius = (no_people * 3) + 4;
+	return radius;
+}
+
+
 
 
 	</script>
